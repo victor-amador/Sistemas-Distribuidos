@@ -13,10 +13,41 @@ Status atual: as tres sprints estao operacionais no codigo atual e foram validad
 
 ## Como executar
 
+### macOS e Linux
+
 Validar a sintaxe:
 
 ```bash
 make check
+```
+
+Forma mais simples para rodar no terminal:
+
+Terminal 1:
+
+```bash
+make master
+```
+
+Terminal 2, com o worker principal:
+
+```bash
+make worker1
+```
+
+Se quiser escolher explicitamente o modo do worker1:
+
+```bash
+make worker1 MODE=HEARTBEAT
+make worker1 MODE=TASKS
+```
+
+Atalhos diretos equivalentes:
+
+```bash
+make worker1-heartbeat
+make worker1-tasks
+make worker2
 ```
 
 Subir o Master das Sprints 1 e 2:
@@ -55,9 +86,65 @@ Trocar a porta ou a tarefa:
 
 ```bash
 make master PORT=5100 TASK_USERS=Joao
-make worker-heartbeat PORT=5100
-make worker-tasks PORT=5100
+make worker1 PORT=5100 MODE=HEARTBEAT
+make worker1 PORT=5100 MODE=TASKS
 ```
+
+Se aparecer `Connection refused`, isso normalmente significa apenas que o Master nao esta rodando naquela porta ou foi encerrado. Nesse caso:
+
+1. suba primeiro `make master`;
+2. depois rode `make worker1` ou `make worker1 MODE=...`;
+3. confirme que ambos usam a mesma `PORT`.
+
+### Windows PowerShell
+
+No Windows, o erro `make : O termo 'make' nao e reconhecido...` significa que o sistema nao tem `make` instalado. Para evitar essa dependencia, use os scripts PowerShell do projeto.
+
+Validar o Python:
+
+```powershell
+py --version
+```
+
+Terminal 1, subir o Master:
+
+```powershell
+.\Start-Master.ps1
+```
+
+Terminal 2, subir o worker principal:
+
+```powershell
+.\Start-Worker1.ps1
+```
+
+Se quiser escolher o modo do worker principal:
+
+```powershell
+.\Start-Worker1.ps1 -Mode HEARTBEAT
+.\Start-Worker1.ps1 -Mode TASKS
+```
+
+Se quiser subir o segundo worker:
+
+```powershell
+.\Start-Worker2.ps1
+```
+
+Se a porta for diferente:
+
+```powershell
+.\Start-Master.ps1 -Port 5100
+.\Start-Worker1.ps1 -Port 5100 -Mode TASKS
+```
+
+Se o PowerShell bloquear a execucao de script, rode uma vez:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+```
+
+Se aparecer `Connection refused` no Windows, o motivo continua sendo o mesmo: o Master nao esta ativo naquela porta ou foi encerrado.
 
 ## Sprint 1
 

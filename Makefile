@@ -1,18 +1,24 @@
 PYTHON ?= /usr/bin/python3
 PORT ?= 5090
+HOST ?= 127.0.0.1
 TASK_USERS ?= Michel
 HEARTBEAT_INTERVAL ?= 1
 RECONNECT_DELAY ?= 10
 FORCE_STATUS ?= OK
+MODE ?= TASKS
 MSG ?= atualizacao
 
-.PHONY: help check master master-sprint12 worker-heartbeat worker-sprint1 worker-tasks worker-sprint2 worker2-tasks master-a-sprint3 master-b-sprint3 worker-b-sprint3 save push
+.PHONY: help check master master-sprint12 worker1 worker1-heartbeat worker1-tasks worker2 worker-heartbeat worker-sprint1 worker-tasks worker-sprint2 worker2-tasks master-a-sprint3 master-b-sprint3 worker-b-sprint3 save push
 
 help:
 	@echo "Comandos disponiveis:"
 	@echo "  make check             - valida a sintaxe dos arquivos Python"
 	@echo "  make master            - inicia o Master padrao das Sprints 1 e 2"
 	@echo "  make master-sprint12   - alias para o Master das Sprints 1 e 2"
+	@echo "  make worker1           - inicia o worker1 com MODE=TASKS ou HEARTBEAT"
+	@echo "  make worker1-heartbeat - inicia o worker1 em HEARTBEAT"
+	@echo "  make worker1-tasks     - inicia o worker1 em TASKS"
+	@echo "  make worker2           - inicia o worker2 em TASKS"
 	@echo "  make worker-heartbeat  - inicia o Worker da Sprint 1"
 	@echo "  make worker-sprint1    - alias para o Worker da Sprint 1"
 	@echo "  make worker-tasks      - inicia o Worker da Sprint 2"
@@ -25,7 +31,7 @@ help:
 	@echo "  make push              - envia os commits ja criados"
 	@echo ""
 	@echo "Variaveis opcionais:"
-	@echo "  PORT=5090 TASK_USERS=Michel HEARTBEAT_INTERVAL=1 RECONNECT_DELAY=10 FORCE_STATUS=OK MSG=atualizacao"
+	@echo "  HOST=127.0.0.1 PORT=5090 MODE=TASKS TASK_USERS=Michel HEARTBEAT_INTERVAL=1 RECONNECT_DELAY=10 FORCE_STATUS=OK MSG=atualizacao"
 
 check:
 	$(PYTHON) -m py_compile worker1.py worker2.py master.py
@@ -36,20 +42,32 @@ master:
 master-sprint12:
 	MASTER_PORT=$(PORT) TASK_USERS=$(TASK_USERS) $(PYTHON) master.py
 
+worker1:
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=$(MODE) HEARTBEAT_INTERVAL=$(HEARTBEAT_INTERVAL) RECONNECT_DELAY=$(RECONNECT_DELAY) FORCE_STATUS=$(FORCE_STATUS) $(PYTHON) worker1.py
+
+worker1-heartbeat:
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=HEARTBEAT HEARTBEAT_INTERVAL=$(HEARTBEAT_INTERVAL) $(PYTHON) worker1.py
+
+worker1-tasks:
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker1.py
+
+worker2:
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker2.py
+
 worker-heartbeat:
-	MASTER_PORT=$(PORT) WORKER_MODE=HEARTBEAT HEARTBEAT_INTERVAL=$(HEARTBEAT_INTERVAL) $(PYTHON) worker1.py
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=HEARTBEAT HEARTBEAT_INTERVAL=$(HEARTBEAT_INTERVAL) $(PYTHON) worker1.py
 
 worker-sprint1:
-	MASTER_PORT=$(PORT) WORKER_MODE=HEARTBEAT HEARTBEAT_INTERVAL=$(HEARTBEAT_INTERVAL) $(PYTHON) worker1.py
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=HEARTBEAT HEARTBEAT_INTERVAL=$(HEARTBEAT_INTERVAL) $(PYTHON) worker1.py
 
 worker-tasks:
-	MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker1.py
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker1.py
 
 worker-sprint2:
-	MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker1.py
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker1.py
 
 worker2-tasks:
-	MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker2.py
+	MASTER_HOST=$(HOST) MASTER_PORT=$(PORT) WORKER_MODE=TASKS FORCE_STATUS=$(FORCE_STATUS) RECONNECT_DELAY=$(RECONNECT_DELAY) $(PYTHON) worker2.py
 
 master-a-sprint3:
 	MASTER_UUID=A MASTER_PORT=5101 TASK_USERS=Ana,Bia,Caio LOAD_CAPACITY=1 RELEASE_THRESHOLD=0 WORKER_LOAD_UNIT=1 NEIGHBOR_MASTERS='B@127.0.0.1:5102' $(PYTHON) master.py
