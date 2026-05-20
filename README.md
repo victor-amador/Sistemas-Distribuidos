@@ -146,6 +146,24 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 Se aparecer `Connection refused` no Windows, o motivo continua sendo o mesmo: o Master nao esta ativo naquela porta ou foi encerrado.
 
+### Windows CMD
+
+Se voce estiver usando o Prompt de Comando em vez do PowerShell, pode rodar diretamente:
+
+```cmd
+Start-Master.cmd
+Start-Worker1.cmd
+```
+
+Se o worker estiver em outro PC da rede, nao use `127.0.0.1`. Passe o IP real da maquina onde o Master esta rodando:
+
+```cmd
+Start-Worker1.cmd 192.168.15.50 5090 TASKS
+Start-Worker2.cmd 192.168.15.50 5090
+```
+
+Se estiver tudo na mesma maquina, os defaults funcionam sem parametro.
+
 ## Sprint 1
 
 Objetivo validado:

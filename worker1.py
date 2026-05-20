@@ -34,6 +34,13 @@ def log(message):
     print(f"[WORKER {WORKER_UUID}] {message}")
 
 
+def log_master_host_hint(host):
+    if host in {"localhost", "127.0.0.1"}:
+        log(
+            "MASTER_HOST esta em localhost/127.0.0.1. Se o Master estiver em outro PC, configure o IP real da maquina do Master."
+        )
+
+
 def send_json(sock, payload):
     message = (json.dumps(payload) + "\n").encode("utf-8")
     total_sent = 0
@@ -257,6 +264,7 @@ def initial_worker_state():
 
 def run_worker():
     state = initial_worker_state()
+    host_hint_logged = False
 
     while True:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -264,11 +272,16 @@ def run_worker():
         buffer = ""
 
         try:
+            if not host_hint_logged:
+                log_master_host_hint(state["current_master_host"])
+                host_hint_logged = True
+
             log(
                 f"Conectando ao Master {state['current_master_uuid']} em {state['current_master_host']}:{state['current_master_port']}..."
             )
             sock.connect((state["current_master_host"], state["current_master_port"]))
             log(f"Conexão estabelecida com o IP do Master {get_connected_master_ip(sock)}.")
+            host_hint_logged = False
 
             if WORKER_MODE == "HEARTBEAT":
                 run_heartbeat_cycle(sock, buffer, state)
@@ -287,6 +300,7 @@ def run_worker():
                 state["borrowed"] = False
         except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, OSError) as exc:
             log(f"Conexão perdida: {exc}")
+            log_master_host_hint(state["current_master_host"])
             if state["borrowed"]:
                 state["current_master_host"] = state["original_master_host"]
                 state["current_master_port"] = state["original_master_port"]
