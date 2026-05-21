@@ -98,7 +98,7 @@ Se aparecer `Connection refused`, isso normalmente significa apenas que o Master
 
 ### Windows PowerShell
 
-No Windows, o erro `make : O termo 'make' nao e reconhecido...` significa que o sistema nao tem `make` instalado. Para evitar essa dependencia, use os scripts PowerShell do projeto.
+No Windows, o erro `make : O termo 'make' nao e reconhecido...` significa que o sistema nao tem `make` instalado. Mudar o IP nao resolve esse erro, porque o problema nao e de rede: e apenas a ausencia do comando `make`. Para evitar essa dependencia, use os scripts PowerShell do projeto.
 
 Validar o Python:
 
@@ -118,6 +118,8 @@ Terminal 2, subir o worker principal:
 .\Start-Worker1.ps1
 ```
 
+O default do worker ja aponta para o IP do seu MacBook: `192.168.15.50`.
+
 Se quiser escolher o modo do worker principal:
 
 ```powershell
@@ -135,7 +137,7 @@ Se a porta for diferente:
 
 ```powershell
 .\Start-Master.ps1 -Port 5100
-.\Start-Worker1.ps1 -Port 5100 -Mode TASKS
+.\Start-Worker1.ps1 -Host 192.168.15.50 -Port 5100 -Mode TASKS
 ```
 
 Se o PowerShell bloquear a execucao de script, rode uma vez:
@@ -155,7 +157,9 @@ Start-Master.cmd
 Start-Worker1.cmd
 ```
 
-Se o worker estiver em outro PC da rede, nao use `127.0.0.1`. Passe o IP real da maquina onde o Master esta rodando:
+O default do worker ja aponta para o IP do seu MacBook: `192.168.15.50`.
+
+Se quiser informar manualmente o IP e a porta do Master:
 
 ```cmd
 Start-Worker1.cmd 192.168.15.50 5090 TASKS
