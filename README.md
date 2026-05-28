@@ -9,11 +9,45 @@ Status atual: as tres sprints estao operacionais no codigo atual e foram validad
 - `master.py`: servidor Master com heartbeat, fila de tarefas e negociacao Master-to-Master.
 - `worker1.py`: worker principal para heartbeat, tarefas, redirecionamento e retorno.
 - `worker2.py`: segundo worker usando a mesma implementacao do `worker1.py`.
-- `Makefile`: atalhos para executar, validar e publicar alteracoes.
+- `Makefile`: atalhos opcionais para executar, validar e publicar alteracoes.
+- `Start-Master.ps1`, `Start-Worker1.ps1`, `Start-Worker2.ps1`: atalhos para Windows PowerShell sem `make`.
+- `Start-Master.cmd`, `Start-Worker1.cmd`, `Start-Worker2.cmd`: atalhos para Windows CMD sem `make`.
 
 ## Como executar
 
+O projeto nao depende de `make` para funcionar. O `make` existe apenas como atalho. Se voce estiver em um computador sem permissao para instalar ferramentas extras, rode diretamente com Python ou use os arquivos `Start-*` no Windows.
+
+### Sem make
+
+#### macOS e Linux
+
+Validar a sintaxe:
+
+```bash
+python3 -m py_compile worker1.py worker2.py master.py
+```
+
+Terminal 1, subir o Master:
+
+```bash
+MASTER_PORT=5090 TASK_USERS=Michel python3 master.py
+```
+
+Terminal 2, subir o worker principal:
+
+```bash
+MASTER_HOST=127.0.0.1 MASTER_PORT=5090 WORKER_MODE=TASKS HEARTBEAT_INTERVAL=1 RECONNECT_DELAY=10 FORCE_STATUS=OK python3 worker1.py
+```
+
+Worker em heartbeat:
+
+```bash
+MASTER_HOST=127.0.0.1 MASTER_PORT=5090 WORKER_MODE=HEARTBEAT HEARTBEAT_INTERVAL=1 python3 worker1.py
+```
+
 ### macOS e Linux
+
+Se voce tiver `make` instalado, tambem pode usar os atalhos abaixo.
 
 Validar a sintaxe:
 
@@ -146,6 +180,28 @@ Se o PowerShell bloquear a execucao de script, rode uma vez:
 Set-ExecutionPolicy -Scope Process Bypass
 ```
 
+Se preferir rodar direto com Python no PowerShell, sem `make` e sem os scripts:
+
+Terminal 1:
+
+```powershell
+$env:MASTER_PORT="5090"
+$env:TASK_USERS="Michel"
+py master.py
+```
+
+Terminal 2:
+
+```powershell
+$env:MASTER_HOST="192.168.15.50"
+$env:MASTER_PORT="5090"
+$env:WORKER_MODE="TASKS"
+$env:HEARTBEAT_INTERVAL="1"
+$env:RECONNECT_DELAY="10"
+$env:FORCE_STATUS="OK"
+py worker1.py
+```
+
 Se aparecer `Connection refused` no Windows, o motivo continua sendo o mesmo: o Master nao esta ativo naquela porta ou foi encerrado.
 
 ### Windows CMD
@@ -167,6 +223,28 @@ Start-Worker2.cmd 192.168.15.50 5090
 ```
 
 Se estiver tudo na mesma maquina, os defaults funcionam sem parametro.
+
+Se preferir rodar direto com Python no CMD, sem `make`:
+
+Terminal 1:
+
+```cmd
+set MASTER_PORT=5090
+set TASK_USERS=Michel
+py master.py
+```
+
+Terminal 2:
+
+```cmd
+set MASTER_HOST=192.168.15.50
+set MASTER_PORT=5090
+set WORKER_MODE=TASKS
+set HEARTBEAT_INTERVAL=1
+set RECONNECT_DELAY=10
+set FORCE_STATUS=OK
+py worker1.py
+```
 
 ## Sprint 1
 
