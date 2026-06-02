@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 
 MASTER_HOST = os.getenv("MASTER_HOST", "0.0.0.0")
-MASTER_PORT = int(os.getenv("MASTER_PORT", "5000"))
+MASTER_PORT = int(os.getenv("MASTER_PORT", "5090"))
 SERVER_UUID = os.getenv("MASTER_UUID", "Master A")
 ACCEPT_TIMEOUT = float(os.getenv("ACCEPT_TIMEOUT", "1"))
 SOCKET_TIMEOUT = float(os.getenv("SOCKET_TIMEOUT", "3"))

@@ -5,8 +5,8 @@ import socket
 import time
 import uuid
 
-MASTER_HOST = os.getenv("MASTER_HOST", "localhost")
-MASTER_PORT = int(os.getenv("MASTER_PORT", "5000"))
+MASTER_HOST = os.getenv("MASTER_HOST", "127.0.0.1")
+MASTER_PORT = int(os.getenv("MASTER_PORT", "5090"))
 MASTER_UUID = os.getenv("MASTER_UUID", "Master A")
 WORKER_UUID = os.getenv("WORKER_UUID", f"W-{uuid.uuid4().hex[:6].upper()}")
 ORIGINAL_SERVER_UUID = os.getenv("ORIGINAL_SERVER_UUID", "")
@@ -17,7 +17,6 @@ HEARTBEAT_INTERVAL = float(os.getenv("HEARTBEAT_INTERVAL", "10"))
 PROCESSING_MIN = float(os.getenv("PROCESSING_MIN", "1"))
 PROCESSING_MAX = float(os.getenv("PROCESSING_MAX", "3"))
 FORCE_STATUS = os.getenv("FORCE_STATUS", "").upper()
-
 
 def normalize_host(host):
     try:

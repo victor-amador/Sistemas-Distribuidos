@@ -9,241 +9,108 @@ Status atual: as tres sprints estao operacionais no codigo atual e foram validad
 - `master.py`: servidor Master com heartbeat, fila de tarefas e negociacao Master-to-Master.
 - `worker1.py`: worker principal para heartbeat, tarefas, redirecionamento e retorno.
 - `worker2.py`: segundo worker usando a mesma implementacao do `worker1.py`.
-- `Makefile`: atalhos opcionais para executar, validar e publicar alteracoes.
-- `Start-Master.ps1`, `Start-Worker1.ps1`, `Start-Worker2.ps1`: atalhos para Windows PowerShell sem `make`.
-- `Start-Master.cmd`, `Start-Worker1.cmd`, `Start-Worker2.cmd`: atalhos para Windows CMD sem `make`.
+- `run_master.py`, `run_worker1.py`, `run_worker2.py`: inicializadores em Python, ideais para qualquer maquina com Python instalado.
+- `Start-Master.ps1`, `Start-Worker1.ps1`, `Start-Worker2.ps1`: atalhos para Windows PowerShell.
+- `Start-Master.cmd`, `Start-Worker1.cmd`, `Start-Worker2.cmd`: atalhos para Windows CMD.
 
 ## Como executar
 
-O projeto nao depende de `make` para funcionar. O `make` existe apenas como atalho. Se voce estiver em um computador sem permissao para instalar ferramentas extras, rode diretamente com Python ou use os arquivos `Start-*` no Windows.
+O projeto nao depende de `make`. O caminho principal agora e usar diretamente os arquivos `run_*.py`.
 
-### Sem make
+### Validar a sintaxe
 
-#### macOS e Linux
-
-Validar a sintaxe:
+macOS e Linux:
 
 ```bash
-python3 -m py_compile worker1.py worker2.py master.py
+python3 -m py_compile worker1.py worker2.py master.py run_master.py run_worker1.py run_worker2.py
 ```
 
-Terminal 1, subir o Master:
+Windows:
+
+```powershell
+py -m py_compile worker1.py worker2.py master.py run_master.py run_worker1.py run_worker2.py
+```
+
+### Execucao principal
+
+macOS e Linux, Terminal 1:
 
 ```bash
-MASTER_PORT=5090 TASK_USERS=Michel python3 master.py
+python3 run_master.py
 ```
 
-Terminal 2, subir o worker principal:
+macOS e Linux, Terminal 2:
 
 ```bash
-MASTER_HOST=127.0.0.1 MASTER_PORT=5090 WORKER_MODE=TASKS HEARTBEAT_INTERVAL=1 RECONNECT_DELAY=10 FORCE_STATUS=OK python3 worker1.py
+python3 run_worker1.py
 ```
+
+Windows PowerShell, Terminal 1:
+
+```powershell
+py run_master.py
+```
+
+Windows PowerShell, Terminal 2:
+
+```powershell
+py run_worker1.py
+```
+
+Windows CMD, Terminal 1:
+
+```cmd
+py run_master.py
+```
+
+Windows CMD, Terminal 2:
+
+```cmd
+py run_worker1.py
+```
+
+Se tudo roda na mesma maquina, nao passe IP. O default do worker ja e `127.0.0.1`.
+
+Se aparecer `Connection refused`, isso normalmente significa apenas que o Master nao esta rodando naquela porta ou foi encerrado. Suba primeiro o Master e depois o Worker.
+
+### Opcoes uteis
 
 Worker em heartbeat:
 
 ```bash
-MASTER_HOST=127.0.0.1 MASTER_PORT=5090 WORKER_MODE=HEARTBEAT HEARTBEAT_INTERVAL=1 python3 worker1.py
+python3 run_worker1.py --mode HEARTBEAT
 ```
-
-### macOS e Linux
-
-Se voce tiver `make` instalado, tambem pode usar os atalhos abaixo.
-
-Validar a sintaxe:
-
-```bash
-make check
-```
-
-Forma mais simples para rodar no terminal:
-
-Terminal 1:
-
-```bash
-make master
-```
-
-Terminal 2, com o worker principal:
-
-```bash
-make worker1
-```
-
-Se quiser escolher explicitamente o modo do worker1:
-
-```bash
-make worker1 MODE=HEARTBEAT
-make worker1 MODE=TASKS
-```
-
-Atalhos diretos equivalentes:
-
-```bash
-make worker1-heartbeat
-make worker1-tasks
-make worker2
-```
-
-Subir o Master das Sprints 1 e 2:
-
-```bash
-make master
-```
-
-Subir o Worker da Sprint 1:
-
-```bash
-make worker-heartbeat
-```
-
-Subir o Worker da Sprint 2:
-
-```bash
-make worker-tasks
-```
-
-Subir um segundo Worker:
-
-```bash
-make worker2-tasks
-```
-
-Atalhos equivalentes por sprint:
-
-```bash
-make master-sprint12
-make worker-sprint1
-make worker-sprint2
-```
-
-Trocar a porta ou a tarefa:
-
-```bash
-make master PORT=5100 TASK_USERS=Joao
-make worker1 PORT=5100 MODE=HEARTBEAT
-make worker1 PORT=5100 MODE=TASKS
-```
-
-Se aparecer `Connection refused`, isso normalmente significa apenas que o Master nao esta rodando naquela porta ou foi encerrado. Nesse caso:
-
-1. suba primeiro `make master`;
-2. depois rode `make worker1` ou `make worker1 MODE=...`;
-3. confirme que ambos usam a mesma `PORT`.
-
-### Windows PowerShell
-
-No Windows, o erro `make : O termo 'make' nao e reconhecido...` significa que o sistema nao tem `make` instalado. Mudar o IP nao resolve esse erro, porque o problema nao e de rede: e apenas a ausencia do comando `make`. Para evitar essa dependencia, use os scripts PowerShell do projeto.
-
-Validar o Python:
 
 ```powershell
-py --version
+py run_worker1.py --mode HEARTBEAT
 ```
 
-Terminal 1, subir o Master:
+Outra porta:
+
+```bash
+python3 run_master.py --port 5100
+python3 run_worker1.py --host 127.0.0.1 --port 5100 --mode TASKS
+```
 
 ```powershell
-.\Start-Master.ps1
+py run_master.py --port 5100
+py run_worker1.py --host 127.0.0.1 --port 5100 --mode TASKS
 ```
 
-Terminal 2, subir o worker principal:
+Worker em outro computador, conectado ao Master no MacBook:
 
 ```powershell
-.\Start-Worker1.ps1
+py run_worker1.py --host 192.168.15.50 --port 5090 --mode TASKS
 ```
 
-O default do worker ja aponta para o IP do seu MacBook: `192.168.15.50`.
+Segundo worker:
 
-Se quiser escolher o modo do worker principal:
+```bash
+python3 run_worker2.py
+```
 
 ```powershell
-.\Start-Worker1.ps1 -Mode HEARTBEAT
-.\Start-Worker1.ps1 -Mode TASKS
-```
-
-Se quiser subir o segundo worker:
-
-```powershell
-.\Start-Worker2.ps1
-```
-
-Se a porta for diferente:
-
-```powershell
-.\Start-Master.ps1 -Port 5100
-.\Start-Worker1.ps1 -Host 192.168.15.50 -Port 5100 -Mode TASKS
-```
-
-Se o PowerShell bloquear a execucao de script, rode uma vez:
-
-```powershell
-Set-ExecutionPolicy -Scope Process Bypass
-```
-
-Se preferir rodar direto com Python no PowerShell, sem `make` e sem os scripts:
-
-Terminal 1:
-
-```powershell
-$env:MASTER_PORT="5090"
-$env:TASK_USERS="Michel"
-py master.py
-```
-
-Terminal 2:
-
-```powershell
-$env:MASTER_HOST="192.168.15.50"
-$env:MASTER_PORT="5090"
-$env:WORKER_MODE="TASKS"
-$env:HEARTBEAT_INTERVAL="1"
-$env:RECONNECT_DELAY="10"
-$env:FORCE_STATUS="OK"
-py worker1.py
-```
-
-Se aparecer `Connection refused` no Windows, o motivo continua sendo o mesmo: o Master nao esta ativo naquela porta ou foi encerrado.
-
-### Windows CMD
-
-Se voce estiver usando o Prompt de Comando em vez do PowerShell, pode rodar diretamente:
-
-```cmd
-Start-Master.cmd
-Start-Worker1.cmd
-```
-
-O default do worker ja aponta para o IP do seu MacBook: `192.168.15.50`.
-
-Se quiser informar manualmente o IP e a porta do Master:
-
-```cmd
-Start-Worker1.cmd 192.168.15.50 5090 TASKS
-Start-Worker2.cmd 192.168.15.50 5090
-```
-
-Se estiver tudo na mesma maquina, os defaults funcionam sem parametro.
-
-Se preferir rodar direto com Python no CMD, sem `make`:
-
-Terminal 1:
-
-```cmd
-set MASTER_PORT=5090
-set TASK_USERS=Michel
-py master.py
-```
-
-Terminal 2:
-
-```cmd
-set MASTER_HOST=192.168.15.50
-set MASTER_PORT=5090
-set WORKER_MODE=TASKS
-set HEARTBEAT_INTERVAL=1
-set RECONNECT_DELAY=10
-set FORCE_STATUS=OK
-py worker1.py
+py run_worker2.py
 ```
 
 ## Sprint 1
@@ -257,8 +124,13 @@ Objetivo validado:
 Comandos:
 
 ```bash
-make master
-make worker-heartbeat
+python3 run_master.py
+python3 run_worker1.py --mode HEARTBEAT
+```
+
+```powershell
+py run_master.py
+py run_worker1.py --mode HEARTBEAT
 ```
 
 ## Sprint 2
@@ -274,9 +146,15 @@ Objetivo validado:
 Comandos:
 
 ```bash
-make master
-make worker-tasks
-make worker2-tasks
+python3 run_master.py
+python3 run_worker1.py
+python3 run_worker2.py
+```
+
+```powershell
+py run_master.py
+py run_worker1.py
+py run_worker2.py
 ```
 
 ## Fluxo para apresentacao das Sprints 1 e 2
@@ -311,20 +189,22 @@ O Master continua atendendo heartbeat e task queue das sprints anteriores, mas a
 Terminal 1:
 
 ```bash
-make master-b-sprint3
+python3 run_master.py --master-uuid B --port 5102 --task-users "" --load-capacity 5 --release-threshold 1 --neighbor-masters A@127.0.0.1:5101
 ```
 
 Terminal 2:
 
 ```bash
-make worker-b-sprint3
+python3 run_worker1.py --host 127.0.0.1 --port 5102 --mode TASKS --master-uuid B
 ```
 
 Terminal 3:
 
 ```bash
-make master-a-sprint3
+python3 run_master.py --master-uuid A --port 5101 --task-users Ana,Bia,Caio --load-capacity 1 --release-threshold 0 --worker-load-unit 1 --neighbor-masters B@127.0.0.1:5102
 ```
+
+No Windows, troque `python3` por `py`.
 
 O comportamento esperado e:
 
@@ -350,10 +230,10 @@ Pontos conferidos no codigo atual:
 
 ## Publicar no GitHub
 
-Depois de alterar o codigo, voce pode usar:
+Depois de alterar o codigo, use:
 
 ```bash
-make save MSG="describe a alteracao"
+git add .
+git commit -m "describe a alteracao"
+git push
 ```
-
-Esse comando faz `git add .`, `git commit` e `git push` de uma vez.
