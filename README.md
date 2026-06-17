@@ -15,103 +15,68 @@ Status atual: as tres sprints estao operacionais no codigo atual e foram validad
 
 ## Como executar
 
-O projeto nao depende de `make`. O caminho principal agora e usar diretamente os arquivos `run_*.py`.
-
-### Validar a sintaxe
-
-macOS e Linux:
+Instale as dependencias antes de rodar o projeto:
 
 ```bash
-python3 -m py_compile worker1.py worker2.py master.py run_master.py run_worker1.py run_worker2.py
+pip install -r requirements.txt
 ```
 
-Windows:
+Se estiver em Windows e o comando acima nao funcionar, use:
 
 ```powershell
-py -m py_compile worker1.py worker2.py master.py run_master.py run_worker1.py run_worker2.py
+py -m pip install -r requirements.txt
 ```
 
-### Execucao principal
+### Executando Master
 
-macOS e Linux, Terminal 1:
+O comando real de inicializacao do Master e `master.py`. No Windows CMD existe tambem o atalho `Start-Master.cmd`.
 
-```bash
-python3 run_master.py
-```
-
-macOS e Linux, Terminal 2:
-
-```bash
-python3 run_worker1.py
-```
-
-Windows PowerShell, Terminal 1:
-
-```powershell
-py run_master.py
-```
-
-Windows PowerShell, Terminal 2:
-
-```powershell
-py run_worker1.py
-```
-
-Windows CMD, Terminal 1:
+Windows CMD:
 
 ```cmd
-py run_master.py
+Start-Master.cmd
 ```
 
-Windows CMD, Terminal 2:
+Windows PowerShell:
+
+```powershell
+py master.py
+```
+
+macOS/Linux:
+
+```bash
+python3 master.py
+```
+
+### Executando Worker
+
+O comando real de inicializacao dos Workers e `worker1.py` ou `worker2.py`.
+
+Windows CMD:
 
 ```cmd
-py run_worker1.py
+py worker1.py
+py worker2.py
+```
+
+Windows PowerShell:
+
+```powershell
+py worker1.py
+py worker2.py
+```
+
+macOS/Linux:
+
+```bash
+python3 worker1.py
+python3 worker2.py
 ```
 
 Se tudo roda na mesma maquina, nao passe IP. O default do worker ja e `127.0.0.1`.
 
 Se aparecer `Connection refused`, isso normalmente significa apenas que o Master nao esta rodando naquela porta ou foi encerrado. Suba primeiro o Master e depois o Worker.
-
-### Opcoes uteis
-
-Worker em heartbeat:
-
-```bash
-python3 run_worker1.py --mode HEARTBEAT
-```
-
-```powershell
-py run_worker1.py --mode HEARTBEAT
-```
-
-Outra porta:
-
-```bash
-python3 run_master.py --port 5100
-python3 run_worker1.py --host 127.0.0.1 --port 5100 --mode TASKS
-```
-
-```powershell
-py run_master.py --port 5100
-py run_worker1.py --host 127.0.0.1 --port 5100 --mode TASKS
-```
-
-Worker em outro computador, conectado ao Master no MacBook:
-
-```powershell
-py run_worker1.py --host 192.168.15.50 --port 5090 --mode TASKS
-```
-
-Segundo worker:
-
-```bash
-python3 run_worker2.py
-```
-
-```powershell
-py run_worker2.py
-```
 
 ## Sprint 1
 
@@ -227,6 +192,55 @@ Pontos conferidos no codigo atual:
 5. A Sprint 3 foi integrada sem separar o projeto em outro codigo.
 6. Tipos de mensagem desconhecidos com `type` sao logados e ignorados.
 7. O fluxo completo de emprestimo e devolucao foi testado localmente.
+
+## Sprint 04 - Monitoramento do Supervisor
+
+Esta entrega adiciona apenas telemetria no Master, sem alterar os protocolos das Sprints 1, 2 e 3.
+
+### Dependencia
+
+```bash
+pip install -r requirements.txt
+```
+
+### Configuracao
+
+Variaveis relevantes para envio ao Supervisor:
+
+- `MASTER_UUID` exemplo: `master_6.A.local`
+- `TCP_SOCKET_HOST` default: `nuted-ia.dev`
+- `TCP_SOCKET_PORT` default: `443`
+- `TCP_SOCKET_TLS` default: `True`
+- `TCP_SOCKET_SNI` default: `nuted-ia.dev`
+- `SUPERVISOR_INTERVAL_SECONDS` default: `10`
+
+O envio usa socket TCP com TLS e SNI. Nao usa HTTP, requests, urllib ou endpoint URL.
+
+### Payload enviado
+
+O payload segue o formato:
+
+```json
+{
+	"server_uuid": "master_6.A.local",
+	"hostname": "master_6.A.local",
+	"role": "master",
+	"task": "performance_report",
+	"timestamp": "ISO8601",
+	"message_id": "UUIDv4",
+	"payload_version": "sprint4-monitor",
+	"performance": {
+		"SYSTEM": {},
+		"FARM_STATE": {}
+	}
+}
+```
+
+### Comportamento de resiliencia
+
+- O envio roda em thread separada.
+- A cada 10 segundos, um novo payload e gerado e enviado.
+- Se o Supervisor estiver indisponivel, o erro e logado e o Master continua operando.
 
 ## Publicar no GitHub
 
