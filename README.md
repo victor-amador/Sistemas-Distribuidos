@@ -1,6 +1,6 @@
 # Sistemas Distribuidos
 
-Implementacao das sprints 1, 2 e 3 com Masters e Workers usando sockets TCP.
+Implementacao das sprints 1, 2, 3 e 4 com Masters e Workers usando sockets TCP.
 
 Status atual: as tres sprints estao operacionais no codigo atual e foram validadas localmente com compilacao e teste de fluxo. A unica ressalva pratica e que a interoperabilidade com a implementacao de outra equipe nao foi testada aqui; ela depende de a outra equipe seguir exatamente os mesmos payloads do enunciado.
 
